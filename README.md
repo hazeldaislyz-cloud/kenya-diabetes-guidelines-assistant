@@ -10,7 +10,7 @@ The guideline runs to 224 pages. A clinical officer at a busy health centre who 
 2. **Find the relevant passages** with BM25 keyword ranking. It runs offline, is easy to explain, and suits clinical questions, which turn on exact terms like HbA1c, eGFR or gliclazide. Words are normalised so British and American spellings (hypoglycaemia, hypoglycemia) and different word endings (screened, screening) match.
 3. **Check the question is in scope before calling any model.** The gate weights each word by how rare it is in the guideline, so a word the guideline never uses (typhoid, cholera) counts heavily against the question, and generic words (treatment, dose) count for little. Low coverage means the answer is "not covered".
 4. **Write the answer** with a language model (Claude), using only the retrieved passages, citing a page after every fact.
-5. **Check the answer before showing it.** Every cited page must be one of the passages the model was given, and every fact must be cited. If not, the answer is withheld.
+5. **Check the answer before showing it.** It must cite at least one page, every page it cites must be one of the passages the model was given, and it must not have been cut off at the length limit. If any check fails, the answer is withheld. (The prompt asks for a citation after every fact; the code checks the citations that are there, not that every sentence has one.)
 6. **Warn where the text may be wrong.** If the answer relies on OCR text, it ends with "Check the figure on page N before acting." If the question uses words the guideline never mentions, the answer says so.
 
 Without an API key, the assistant runs offline and shows the best passages with their page numbers instead of a written answer.
@@ -56,7 +56,7 @@ The held-out miss was the glucose level in HHS (p. 182), another retrieval miss 
 ## Responsible use
 
 - **It is not a clinician.** It finds and quotes the national guideline. The health worker decides.
-- **No answer without a source.** Every fact must cite a page the model was actually given, or the answer is withheld. This is tested in `tests/test_guideassist.py`.
+- **No answer without a source.** An answer must cite pages, and only pages the model was actually given, or it is withheld. This is tested in `tests/test_guideassist.py`.
 - **It refuses rather than guesses** when the guideline doesn't cover a question.
 - **It flags its own weak spots:** answers that rely on OCR text, and questions using words the guideline never uses.
 - **No patient data.** Questions are about the guideline, not about a person. Nothing is stored.
