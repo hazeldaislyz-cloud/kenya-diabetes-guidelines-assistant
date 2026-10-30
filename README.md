@@ -27,23 +27,31 @@ Without an API key, the assistant runs offline and shows the best passages with 
 
 I wrote 30 questions a health worker might ask, plus 6 the guideline doesn't cover. For every question I checked the answer against the page by hand: the key facts that must appear (doses, thresholds, intervals) and the pages that state them. I used this set to choose the relevance threshold. I then wrote a **separate held-out set** of 6 in-scope and 6 out-of-scope questions that played no part in any design choice, so the scores on it are an honest estimate of performance on new questions.
 
+Answers were written by Claude Sonnet 5.5. Every answer is saved in `eval/results.jsonl` and `eval/results_heldout.jsonl`, and I read all of them.
+
 | Measure | Main set (36) | Held-out set (12) |
 |---|---|---|
 | Expected page among the top 5 passages | 93% | 67% |
 | All key facts present in the top 5 passages | 93% | 83% |
-| In-scope questions wrongly refused | 0% | 0% |
-| Out-of-scope questions refused by the gate | 67% (4 of 6) | 33% (2 of 6) |
-| Out-of-scope questions refused or flagged ("the guideline never mentions …") | 67% | 67% |
+| **Answers containing every key fact** | **87%** (26 of 30) | **83%** (5 of 6) |
+| Answers citing an expected page | 87% | 67% |
+| In-scope questions refused | 10% (3 of 30) | 17% (1 of 6) |
+| **Out-of-scope questions refused** | **100%** (6 of 6) | **100%** (6 of 6) |
+| Answers withheld by the citation check | 0 | 0 |
 
-**What these numbers mean.** The retrieval step finds the evidence for most questions, and the gate never blocked a fair question. One fair question got a needless "never mentions" warning, because it used the word "afterwards". The weak point is off-topic questions that share real vocabulary with the guideline. Malaria, hepatitis, HPV vaccination and Pap smears all get past the gate, because the guideline does mention malaria, hepatitis, vaccines and smears in other contexts. For these, the language model is the second line of defence: it is told to answer only from the passages and reply "not covered" otherwise. The held-out set is small, so its percentages move a lot with each question.
+**No answer gave a wrong dose or threshold.** When the assistant fell short, it either declined or said what was missing, never guessed. Of the 4 main-set questions without every key fact:
 
-**Questions it got wrong, and why:**
+- *Eye screening interval in type 2 diabetes* and *insulin infusion rate in adult DKA*: the right passage wasn't retrieved, so the model said the guideline doesn't cover it. A retrieval miss, handled safely.
+- *Metformin dose in kidney disease*: the chart on p. 71 can't be read even by OCR, so the model declined. This one needs a person to read the figure.
+- *Starting dose of premixed insulin*: the line "Starting dose 6-10 units" sits in the second half of p. 49, and only the first half was retrieved. The model said the passages gave no fixed starting dose. True of what it was shown, but a health worker would miss the answer. Smaller passages or meaning-based search should fix this.
 
-- *Eye screening interval in type 2 diabetes:* the answer (annually, p. 59) sits in a dense flowchart and lost out to pages about screening in general.
-- *Metformin dose in chronic kidney disease:* p. 71 is a coloured chart that even OCR can't read. This is a real gap, and the answer would have to come from a person reading the figure.
-- *Insulin infusion rate in adult DKA, HbA1c monitoring after basal insulin, glucose level in HHS:* the facts were found, but on a different page of the guideline from the one I expected, or not in the top 5.
+The held-out miss was the glucose level in HHS (p. 182), another retrieval miss that ended in a refusal. One answer counted against "citing an expected page" was in fact correct: the type 1 eye screening question was answered from the children's screening table on p. 137, which I hadn't listed. I've left the score as measured.
 
-**Not yet measured: the written answers.** Scoring the language model's answers (whether every key fact appears, whether the expected page is cited, how often the citation check withholds an answer) needs an Anthropic API key. Running `python -m guideassist.cli eval` with a key set adds those measures automatically. Until then, the results above cover retrieval and refusal, which run fully offline.
+**One weakness the scores don't show.** The guideline has separate adult and children's sections, and two answers drew on the children's ones for questions that didn't name an age. The hypoglycaemia answer said it came from the school plan. The potassium answer gave the paediatric DKA maximum (p. 125) alongside the adult table (p. 183) without saying which was which. Both are accurate to the guideline, but a health worker could apply a child's limit to an adult. The fix is to tag each passage as adult or paediatric and have the answer say which it is using.
+
+**What the model did well, beyond the numbers.** It noticed when OCR text was garbled and said so (the glucagon weight band misread as "225 kg"; a jumbled branch of the metformin flowchart). It flagged where the guideline contradicts itself (the pre-Ramadan visit is "at least 8 weeks" and "6-8 weeks" on the same page). When the guideline had no specific answer, it said so before giving the nearest general one (HbA1c "every 3-6 months" when asked about monitoring after basal insulin).
+
+**Two bugs the first run caught.** My first run with Sonnet 5.5 scored 77% on key facts, with 20% of fair questions refused. Reading every answer showed why. Answers were being cut off at the token limit and *still shown*, ending mid-sentence. And three good answers were thrown away because they cited pages as `[pp. 43, 29]` or `[p. 44, figure text]`, which my checker didn't recognise. I fixed both: an answer that stops at the token limit is now withheld, and the checker reads those citation forms while still rejecting any page the model wasn't given. Both fixes are covered by tests.
 
 ## Responsible use
 
@@ -56,18 +64,19 @@ I wrote 30 questions a health worker might ask, plus 6 the guideline doesn't cov
 ## Limitations
 
 - One document only, and only the 2024 edition. When the guideline is updated, the index must be rebuilt.
-- Keyword retrieval can miss a question phrased very differently from the guideline. Adding meaning-based (embedding) search alongside BM25 is the obvious next step.
+- Retrieval is the weak link: all 4 refusals of fair questions were passages that weren't found. Keyword search can miss a question phrased differently from the guideline, and a long page can be split so the key line lands in a passage that isn't retrieved. Adding meaning-based (embedding) search alongside BM25 is the obvious next step.
 - OCR text can be wrong, and some figures can't be read at all (p. 71).
 - English only. Health workers in Kenya often think and talk in Kiswahili; a Kiswahili question would need translation first.
 - The evaluation sets are small and written by one person. A real evaluation would use questions collected from health workers, and answers reviewed by a clinician.
 
 ## Next steps
 
-1. Score the written answers with an API key, and have a clinician review a sample.
+1. Have a clinician review a sample of the written answers.
 2. Collect 50 to 100 real questions from clinical officers and nurses, and re-run the evaluation on them.
 3. Add embedding search and compare it with BM25 on the same questions.
-4. Try it with Kiswahili questions.
-5. Package it for low-bandwidth use: a WhatsApp or SMS front end, with the offline passage mode as the fallback.
+4. Tag passages as adult or paediatric, so answers always say which population they apply to.
+5. Try it with Kiswahili questions.
+6. Package it for low-bandwidth use: a WhatsApp or SMS front end, with the offline passage mode as the fallback.
 
 ## How to run
 
@@ -83,7 +92,7 @@ python -m guideassist.cli ask "What is the starting dose of basal insulin in typ
 python -m guideassist.cli eval                            # main question set
 python -m guideassist.cli eval heldout                    # held-out question set
 cd ..
-python -m pytest tests                                    # 9 tests, no PDF or API key needed
+python -m pytest tests                                    # 11 tests, no PDF or API key needed
 ```
 
 To get written answers instead of passages, set `ANTHROPIC_API_KEY` before running `ask` or `eval`.
@@ -101,7 +110,7 @@ eval/
   questions.jsonl  30 in-scope and 6 out-of-scope questions, answers checked by hand
   heldout.jsonl    6 + 6 questions kept back from all design choices
   summary*.json    latest scores
-tests/           citation check, refusal, OCR warning, unknown-word warning
+tests/           citation check and its variants, cut-off answers, refusal, OCR and unknown-word warnings
 ```
 
 ## Author

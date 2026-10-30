@@ -4,9 +4,11 @@
   "out_of_scope": 6,
   "expected page in top 5": 0.933,
   "all key facts in top 5 passages": 0.933,
-  "in-scope questions wrongly refused": 0.0,
-  "out-of-scope questions correctly refused": 0.667,
-  "out-of-scope questions refused or flagged with an unknown-word warning": 0.667,
+  "in-scope questions wrongly refused": 0.1,
+  "out-of-scope questions correctly refused": 1.0,
+  "out-of-scope questions refused or flagged with an unknown-word warning": 1.0,
   "in-scope questions given an unknown-word warning": 0.033,
-  "answer measures": "not run: set ANTHROPIC_API_KEY to generate and score answers"
+  "answers containing all key facts": 0.867,
+  "answers citing an expected page": 0.867,
+  "answers withheld by the citation check": 0.0
 }
