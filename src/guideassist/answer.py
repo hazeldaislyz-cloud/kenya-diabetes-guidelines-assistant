@@ -14,6 +14,7 @@ import re
 from .retrieve import Retriever
 
 MIN_COVERAGE = 0.5  # chosen on eval/questions.jsonl; checked on eval/heldout.jsonl
+MAX_TOKENS = 2000   # room for the model's own reasoning as well as the short answer
 
 NOT_FOUND = "The guideline doesn't cover this question, so I can't answer it from this source."
 
@@ -38,8 +39,19 @@ def _label(p) -> str:
     return ", figure text, read by OCR" if getattr(p, "source", "text") == "ocr" else ""
 
 
+CITATION = re.compile(r"[\[(]\s*pp?\.?\s*(\d[^\])]*)[\])]", re.IGNORECASE)
+
+
 def cited_pages(text: str) -> set[int]:
-    return {int(n) for n in re.findall(r"\[p\.?\s*(\d+)\]", text)}
+    """Pages cited as [p. 12], and the variants models also write: [p.12], (p. 12),
+    [pp. 12, 13], [p. 12; p. 14], [p. 12-13], [p. 44, figure text]."""
+    pages: set[int] = set()
+    for group in CITATION.findall(text):
+        group = re.split(r"[a-oq-z]{3,}", group, flags=re.IGNORECASE)[0]  # stop at words like "figure"
+        for a, b in re.findall(r"(\d+)\s*(?:[-\u2013]\s*(\d+))?", group):
+            lo, hi = int(a), int(b) if b else int(a)
+            pages.update(range(lo, hi + 1) if 0 <= hi - lo <= 5 else (lo, hi))
+    return pages
 
 
 def check(answer: str, allowed_pages: set[int]) -> list[str]:
@@ -77,7 +89,7 @@ def answer(question: str, retriever: Retriever, k: int = 5, min_coverage: float 
         client = anthropic.Anthropic()
     context = "\n\n".join(f"[p. {p.page}{_label(p)}] {p.text}" for p, _ in hits)
     msg = client.messages.create(
-        model=model, max_tokens=400,
+        model=model, max_tokens=MAX_TOKENS,
         messages=[{"role": "user", "content": PROMPT.format(
             not_found=NOT_FOUND, context=context, question=question,
             unknown=(f"The guideline never uses these words from the question: {', '.join(unknown)}. "
@@ -85,6 +97,8 @@ def answer(question: str, retriever: Retriever, k: int = 5, min_coverage: float 
     # Join the text blocks of the reply (newer models may also return other block types).
     text = "".join(getattr(b, "text", "") for b in msg.content if getattr(b, "type", "text") == "text").strip()
     problems = check(text, allowed)
+    if getattr(msg, "stop_reason", None) == "max_tokens":
+        problems.append("answer was cut off before it finished")
     if problems:
         return {"answer": NOT_FOUND, "pages": [], "source": "answer withheld: " + "; ".join(problems),
                 "problems": problems, "rejected_answer": text}

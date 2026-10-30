@@ -59,6 +59,8 @@ def run(retriever: Retriever, questions_path: str | Path, client=None, k: int = 
                 row["facts_in_answer"] = all(_has(res["answer"], f) for f in q["key_facts"])
                 row["cites_expected_page"] = bool(exp & set(res["pages"]))
         row["answer"] = res["answer"]
+        if res.get("rejected_answer"):
+            row["rejected_answer"] = res["rejected_answer"]
         rows.append(row)
 
     ins = [r for r in rows if r["in_scope"]]

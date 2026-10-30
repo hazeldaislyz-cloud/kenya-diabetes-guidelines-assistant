@@ -18,11 +18,11 @@ DOC = [
 
 
 class FakeClient:
-    def __init__(self, text):
-        self.text, self.messages = text, self
+    def __init__(self, text, stop_reason="end_turn"):
+        self.text, self.stop, self.messages = text, stop_reason, self
 
     def create(self, **kw):
-        return type("M", (), {"content": [type("C", (), {"text": self.text})()]})()
+        return type("M", (), {"content": [type("C", (), {"text": self.text})()], "stop_reason": self.stop})()
 
 
 def test_split_page_overlaps_and_keeps_page():
@@ -35,6 +35,20 @@ def test_retrieval_finds_right_page():
     r = Retriever(DOC)
     assert r.search("What HbA1c level confirms diabetes?", 1)[0][0].page == 20
     assert r.search("starting dose of metformin", 1)[0][0].page == 12
+
+
+def test_citation_variants_are_read():
+    from guideassist.answer import cited_pages
+    assert cited_pages("x [p. 44, figure text, read by OCR] y") == {44}
+    assert cited_pages("[pp. 43, 29] and (p. 66) and [p.12; p. 14]") == {43, 29, 66, 12, 14}
+    assert cited_pages("[p. 182-183]") == {182, 183}
+    assert cited_pages("no page here, 15 mg") == set()
+
+
+def test_cut_off_answer_is_withheld():
+    r = Retriever(DOC)
+    res = answer("starting dose of metformin", r, client=FakeClient("Start metformin 500 mg [p. 12]. Then", "max_tokens"))
+    assert res["answer"] == NOT_FOUND and "cut off" in res["source"]
 
 
 def test_citation_check():
