@@ -56,7 +56,7 @@ def check(answer: str, allowed_pages: set[int]) -> list[str]:
 
 
 def answer(question: str, retriever: Retriever, k: int = 5, min_coverage: float = MIN_COVERAGE,
-           client=None, model: str = "claude-sonnet-4-5") -> dict:
+           client=None, model: str = "claude-sonnet-5-5") -> dict:
     hits = retriever.search(question, k)
     allowed = {p.page for p, _ in hits}
     ocr_pages = sorted({p.page for p, _ in hits if p.source == "ocr"})
