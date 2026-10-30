@@ -1,0 +1,12 @@
+{"question": "What is the fasting blood glucose target in pregnancy?", "expected_pages": [97], "key_facts": ["3.7", "5.3"], "in_scope": true}
+{"question": "How often should HbA1c be monitored after starting basal insulin?", "expected_pages": [48], "key_facts": ["3-6"], "in_scope": true}
+{"question": "What is the smoking cessation hotline number in Kenya?", "expected_pages": [66], "key_facts": ["1192"], "in_scope": true}
+{"question": "What blood glucose level is seen in hyperosmolar hyperglycaemic state?", "expected_pages": [182], "key_facts": ["33"], "in_scope": true}
+{"question": "What glucose dose is used for an OGTT in children?", "expected_pages": [32], "key_facts": ["1.75"], "in_scope": true}
+{"question": "How often should people with diabetes get the influenza vaccine?", "expected_pages": [59], "key_facts": ["annual"], "in_scope": true}
+{"question": "What is the treatment for uncomplicated malaria in adults?", "expected_pages": [], "key_facts": [], "in_scope": false}
+{"question": "Which antibiotic treats an uncomplicated urinary tract infection?", "expected_pages": [], "key_facts": [], "in_scope": false}
+{"question": "What is the adult dose of paracetamol for fever?", "expected_pages": [], "key_facts": [], "in_scope": false}
+{"question": "What are the symptoms of cholera?", "expected_pages": [], "key_facts": [], "in_scope": false}
+{"question": "How often should a woman have a Pap smear?", "expected_pages": [], "key_facts": [], "in_scope": false}
+{"question": "At what age is the measles vaccine given?", "expected_pages": [], "key_facts": [], "in_scope": false}

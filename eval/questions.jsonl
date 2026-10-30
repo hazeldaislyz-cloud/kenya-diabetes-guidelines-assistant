@@ -1,0 +1,36 @@
+{"question": "What fasting plasma glucose level confirms diabetes?", "expected_pages": [32], "key_facts": ["7.0"], "in_scope": true}
+{"question": "What HbA1c range defines prediabetes?", "expected_pages": [32], "key_facts": ["5.7", "6.4"], "in_scope": true}
+{"question": "At what age should testing for diabetes begin in adults without risk factors?", "expected_pages": [31], "key_facts": ["35"], "in_scope": true}
+{"question": "How often should women who had gestational diabetes be tested for diabetes afterwards?", "expected_pages": [31], "key_facts": ["3 years"], "in_scope": true}
+{"question": "What is the starting dose of metformin for type 2 diabetes in resource scarce settings?", "expected_pages": [44], "key_facts": ["500"], "in_scope": true}
+{"question": "What dose of gliclazide is added when metformin alone does not achieve the goal?", "expected_pages": [44], "key_facts": ["80"], "in_scope": true}
+{"question": "How much aerobic physical activity per week is recommended for adults with diabetes?", "expected_pages": [43], "key_facts": ["150"], "in_scope": true}
+{"question": "What is the starting dose of basal insulin when initiating insulin in type 2 diabetes?", "expected_pages": [48], "key_facts": ["10"], "in_scope": true}
+{"question": "What is the starting dose of premixed insulin in type 2 diabetes?", "expected_pages": [49], "key_facts": ["6", "10"], "in_scope": true}
+{"question": "By how much can human premixed insulin be adjusted per week in adults?", "expected_pages": [49], "key_facts": ["4"], "in_scope": true}
+{"question": "What blood pressure goal should medical treatment maintain in people with diabetes?", "expected_pages": [66], "key_facts": ["140/90"], "in_scope": true}
+{"question": "Which statin intensity is recommended for primary prevention in people with diabetes aged 40 to 75 years?", "expected_pages": [67], "key_facts": ["moderate"], "in_scope": true}
+{"question": "What aspirin dose is recommended for secondary prevention when ASCVD is present?", "expected_pages": [67], "key_facts": ["75", "162"], "in_scope": true}
+{"question": "At what blood glucose level should people on insulin check for ketones?", "expected_pages": [61], "key_facts": ["16"], "in_scope": true}
+{"question": "On a sick day, how many extra units of insulin should a 70 kg patient with blood ketones of 3.0 or more take?", "expected_pages": [61], "key_facts": ["14"], "in_scope": true}
+{"question": "How often should people with type 2 diabetes have their eyes screened?", "expected_pages": [59, 37], "key_facts": ["annual"], "in_scope": true}
+{"question": "When should retinopathy screening start in type 1 diabetes?", "expected_pages": [59, 160], "key_facts": ["5 years"], "in_scope": true}
+{"question": "How should hypoglycaemia be treated in a patient who is conscious and able to swallow?", "expected_pages": [157, 209], "key_facts": ["15"], "in_scope": true}
+{"question": "What dose of glucagon is given for severe hypoglycaemia in a child weighing more than 25 kg?", "expected_pages": [157], "key_facts": ["1 mg"], "in_scope": true}
+{"question": "What fasting blood glucose range diagnoses gestational diabetes?", "expected_pages": [96], "key_facts": ["5.1"], "in_scope": true}
+{"question": "When should universal screening for gestational diabetes be done?", "expected_pages": [97], "key_facts": ["24", "28"], "in_scope": true}
+{"question": "How is diabetic ketoacidosis defined in adults?", "expected_pages": [182], "key_facts": ["13.9", "7.3"], "in_scope": true}
+{"question": "What is the fixed rate insulin infusion dose in adult DKA?", "expected_pages": [183], "key_facts": ["0.1"], "in_scope": true}
+{"question": "How much potassium should be added to the infusion in DKA when potassium is 3.5 to 5.5 mmol/L?", "expected_pages": [183], "key_facts": ["40"], "in_scope": true}
+{"question": "What urine albumin creatinine ratio is severely increased albuminuria?", "expected_pages": [69], "key_facts": ["30"], "in_scope": true}
+{"question": "Above what GFR should an SGLT2 inhibitor be started for persistent proteinuria?", "expected_pages": [69], "key_facts": ["20"], "in_scope": true}
+{"question": "How often should all people with diabetes be seen by a foot specialist?", "expected_pages": [78], "key_facts": ["once a year"], "in_scope": true}
+{"question": "What random blood glucose level diagnoses diabetes in a TB patient with classical symptoms?", "expected_pages": [93], "key_facts": ["11.1"], "in_scope": true}
+{"question": "How long before Ramadan should a person with diabetes have a pre-Ramadan visit?", "expected_pages": [101], "key_facts": ["8 weeks"], "in_scope": true}
+{"question": "How should the metformin dose be adjusted in chronic kidney disease?", "expected_pages": [70, 71], "key_facts": ["50"], "in_scope": true}
+{"question": "What is the first-line treatment for typhoid fever?", "expected_pages": [], "key_facts": [], "in_scope": false}
+{"question": "What is the HPV vaccination schedule for girls?", "expected_pages": [], "key_facts": [], "in_scope": false}
+{"question": "What is the price of a vial of insulin at KEMSA?", "expected_pages": [], "key_facts": [], "in_scope": false}
+{"question": "How should a snake bite be managed?", "expected_pages": [], "key_facts": [], "in_scope": false}
+{"question": "What is the first-line treatment for hepatitis C?", "expected_pages": [], "key_facts": [], "in_scope": false}
+{"question": "Which inhaler should be used for an acute asthma attack?", "expected_pages": [], "key_facts": [], "in_scope": false}

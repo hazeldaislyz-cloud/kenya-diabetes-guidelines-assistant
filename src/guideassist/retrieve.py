@@ -6,6 +6,7 @@ metformin, eGFR), which keyword ranking handles well.
 """
 from __future__ import annotations
 
+import math
 import re
 
 from rank_bm25 import BM25Okapi
@@ -23,16 +24,57 @@ SYNONYMS = {  # expand common abbreviations both ways
 }
 
 
+def norm(t: str) -> str:
+    """Light normalisation so different forms of a word match: British and American
+    spelling (hypoglycaemia/hypoglycemia, oedema/edema) and common word endings
+    (screened/screening/screen)."""
+    if t[0].isdigit():
+        return t
+    t = t.replace("ae", "e").replace("oe", "e")
+    for suffix in ("ations", "ation", "ings", "ing", "ies", "ed", "es", "s"):
+        if t.endswith(suffix) and len(t) - len(suffix) >= 4:
+            return t[: -len(suffix)]
+    return t
+
+
 def tokens(text: str) -> list[str]:
-    toks = [t for t in re.findall(r"[a-z0-9]+(?:\.[0-9]+)?", text.lower()) if t not in STOP]
-    extra = [s for t in toks for s in SYNONYMS.get(t, [])]
-    return toks + extra
+    raw = [t for t in re.findall(r"[a-z0-9]+(?:\.[0-9]+)?", text.lower()) if t not in STOP]
+    extra = [s for t in raw for s in SYNONYMS.get(t, [])]
+    return [norm(t) for t in raw + extra]
 
 
 class Retriever:
     def __init__(self, passages: list[Passage]):
         self.passages = passages
-        self.bm25 = BM25Okapi([tokens(p.text) for p in passages])
+        toks = [tokens(p.text) for p in passages]
+        self.bm25 = BM25Okapi(toks)
+        self.df: dict[str, int] = {}
+        for t in toks:
+            for w in set(t):
+                self.df[w] = self.df.get(w, 0) + 1
+        self._prefixes = {w[:6] for w in self.df if len(w) >= 6}
+
+    def idf(self, term: str) -> float:
+        """Rarity of a word in the guideline. Words it never uses count the most."""
+        return math.log((len(self.passages) + 1) / (self.df.get(term, 0) + 0.5))
+
+    def coverage(self, question: str, hits: list[tuple[Passage, float]]) -> float:
+        """Share of the question's meaning, weighted by word rarity, found in the passages.
+        Low coverage means the guideline probably doesn't address the question."""
+        q = set(tokens(question))
+        found = {t for p, _ in hits for t in tokens(p.text)}
+        total = sum(self.idf(t) for t in q)
+        return sum(self.idf(t) for t in q if t in found) / total if total else 0.0
+
+    def unknown_terms(self, question: str) -> list[str]:
+        """Words in the question that the guideline never uses (allowing simple word endings)."""
+        out = []
+        for word in sorted(set(re.findall(r"[a-z]+", question.lower())) - STOP):
+            t = norm(word)
+            if len(t) < 4 or t in self.df or (len(t) >= 6 and t[:6] in self._prefixes):
+                continue
+            out.append(word)
+        return out
 
     def search(self, question: str, k: int = 5) -> list[tuple[Passage, float]]:
         scores = self.bm25.get_scores(tokens(question))

@@ -8,10 +8,11 @@ from guideassist.ingest import Passage, split_page  # noqa: E402
 from guideassist.retrieve import Retriever  # noqa: E402
 
 DOC = [
-    Passage("a", 12, "Metformin is the first-line drug for type 2 diabetes. Start metformin 500 mg once daily "
-                     "with meals and increase gradually to a maximum of 2 g per day."),
+    Passage("a", 12, "Metformin is the first-line drug for type 2 diabetes. The starting dose of metformin is "
+                     "500 mg once daily with meals, increased gradually to a maximum of 2 g per day."),
     Passage("b", 20, "Diagnose diabetes when fasting plasma glucose is 7.0 mmol/L or more, or HbA1c is 6.5% or more."),
     Passage("c", 31, "Treat hypoglycaemia below 4.0 mmol/L with 15 to 20 g of fast-acting glucose and recheck after 15 minutes."),
+    Passage("d", 57, "Glucagon dose for severe hypoglycaemia: under 25 kg 0.5 mg, 25 kg and over 1 mg.", "ocr"),
 ] + [Passage(f"x{i}", 40 + i, f"Foot care advice for people with diabetes, section {i}, daily inspection of feet.")
      for i in range(5)]
 
@@ -59,3 +60,24 @@ def test_out_of_scope_refused_by_retrieval():
     r = Retriever(DOC)
     res = answer("What is the capital of France?", r, client=FakeClient("Paris [p. 12]."))
     assert res["answer"] == NOT_FOUND
+
+
+def test_question_about_a_word_the_guideline_never_uses_is_flagged():
+    r = Retriever(DOC)
+    assert r.unknown_terms("starting dose of metformin for typhoid") == ["typhoid"]
+    res = answer("starting dose of metformin for typhoid", r, client=FakeClient("Start metformin 500 mg once daily [p. 12]."))
+    assert "never mentions: typhoid" in res["answer"]
+
+
+def test_low_coverage_question_is_refused_without_calling_a_model():
+    class Boom:
+        messages = property(lambda self: (_ for _ in ()).throw(AssertionError("model should not be called")))
+    r = Retriever(DOC)
+    res = answer("How is cholera treated in children?", r, client=Boom())
+    assert res["answer"] == NOT_FOUND
+
+
+def test_answer_from_ocr_text_tells_reader_to_check_the_figure():
+    r = Retriever(DOC)
+    res = answer("glucagon dose for severe hypoglycaemia", r, client=FakeClient("Give 1 mg if 25 kg or over [p. 57]."))
+    assert res["source"] == "llm" and "Check the figure on page 57" in res["answer"]
