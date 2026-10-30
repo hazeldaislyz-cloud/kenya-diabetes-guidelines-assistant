@@ -77,12 +77,13 @@ def answer(question: str, retriever: Retriever, k: int = 5, min_coverage: float 
         client = anthropic.Anthropic()
     context = "\n\n".join(f"[p. {p.page}{_label(p)}] {p.text}" for p, _ in hits)
     msg = client.messages.create(
-        model=model, max_tokens=400, temperature=0,
+        model=model, max_tokens=400,
         messages=[{"role": "user", "content": PROMPT.format(
             not_found=NOT_FOUND, context=context, question=question,
             unknown=(f"The guideline never uses these words from the question: {', '.join(unknown)}. "
                      "If the answer depends on them, reply with the not-found sentence.\n\n") if unknown else "")}])
-    text = msg.content[0].text.strip()
+    # Join the text blocks of the reply (newer models may also return other block types).
+    text = "".join(getattr(b, "text", "") for b in msg.content if getattr(b, "type", "text") == "text").strip()
     problems = check(text, allowed)
     if problems:
         return {"answer": NOT_FOUND, "pages": [], "source": "answer withheld: " + "; ".join(problems),
